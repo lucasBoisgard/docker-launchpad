@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# This script automates the creation of a complete microservices architecture
-# for a development environment.
+# This script automates the creation AND launch of a complete microservices
+# architecture for a development environment.
 # It will exit immediately if any command fails.
 set -e
 
@@ -32,7 +32,7 @@ echo -e "✔ Directory '$PROJECT_NAME' created.\n"
 
 # --- Step 3: Set up the Frontend Service ('app') ---
 echo "▶ Setting up Frontend service ('app')..."
-echo "  - Creating a complete React/Vite project via npx..."
+echo "  - Creating a complete React/Vite project via npx (requires user input)..."
 # Create a full React application with all necessary source files
 npx create-vite@latest app --template react-ts
 
@@ -115,7 +115,7 @@ cat <<'EOF' > auth-service/tsconfig.json
 }
 EOF
 echo "  - File 'auth-service/tsconfig.json' created."
-cat <<'EOF' > auth-service/nodemon.json
+cat <<'EOF' > api/nodemon.json
 { "watch": ["src"], "ext": "ts,json", "ignore": ["src/**/*.spec.ts"], "exec": "ts-node ./src/index.ts" }
 EOF
 echo "  - File 'auth-service/nodemon.json' created."
@@ -235,21 +235,30 @@ volumes:
 EOF
 echo -e "✔ File 'docker-compose.yml' created.\n"
 
+# --- Step 8: Finalizing and Launching Environment (AUTOMATED) ---
+echo "====================================================="
+echo "      PROJECT FILES CREATED. NOW LAUNCHING..."
+echo "====================================================="
+echo ""
+
+echo "▶ (IMPORTANT) Installing frontend dependencies on host..."
+echo "(This is required for the Docker volume and hot-reloading to work correctly)"
+cd app && npm install && cd ..
+echo "✔ Frontend dependencies installed."
+echo ""
+
+echo "▶ Launching Docker environment in the background..."
+echo "(This may take a minute for the first build)"
+docker compose up --build -d
+echo ""
+
 # --- Final Instructions ---
 echo "====================================================="
-echo "         PROJECT '$PROJECT_NAME' CREATED SUCCESSFULLY!"
+echo "         ENVIRONMENT IS UP AND RUNNING!"
 echo "====================================================="
 echo ""
-echo "Next Steps:"
-echo "1. First, navigate into the new project directory:"
-echo "   cd \"$PROJECT_NAME\""
+echo "✔ Your full-stack application is now accessible at: http://localhost (or your server's IP)"
 echo ""
-echo "2. (IMPORTANT) Install the frontend dependencies on your host machine:"
-echo "   (This is required for the Docker volume and hot-reloading to work correctly)"
-echo "   cd app && npm install && cd .."
-echo ""
-echo "3. Launch the environment with Docker Compose:"
-echo "   docker compose up --build -d"
-echo ""
-echo "4. Once started, access your application at: http://localhost (or your server's IP)"
+echo "To stop the environment, navigate to the '$PROJECT_NAME' directory and run:"
+echo "  docker compose down"
 echo ""
